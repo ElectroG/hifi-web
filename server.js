@@ -63,6 +63,29 @@ app.get('/api/track', async (req, res) => {
     }
 });
 
+// server.js (add this route)
+app.get('/api/cover', async (req, res) => {
+    const trackId = req.query.trackId;
+    try {
+        const externalResponse = await fetch(`https://tidal.401658.xyz/cover/?id=${encodeURIComponent(trackId)}`);
+        const jsonData = await externalResponse.json();
+
+        if (!Array.isArray(jsonData) || jsonData.length === 0) {
+            return res.status(404).json({ error: 'Cover not found' });
+        }
+
+        const coverUrl640 = jsonData[0]['640'];
+        if (!coverUrl640) {
+            return res.status(404).json({ error: '640px cover not available' });
+        }
+
+        res.json({ coverUrl: coverUrl640 });
+    } catch (error) {
+        console.error('Cover error:', error);
+        res.status(500).json({ error: 'Error fetching cover' });
+    }
+});
+
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 });

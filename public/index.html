@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <title>HiFi Web Interface</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        #repeatButton {
+            margin-top: 20px; /* Add margin to push the button down */
+        }
+    </style>
 </head>
 <body>
 <div class="container">
@@ -14,6 +19,10 @@
     </div>
     <div id="results" class="track-list"></div>
     <audio id="audioPlayer" controls class="hidden"></audio>
+    <div id="coverContainer" class="cover-container hidden">
+        <img id="coverImage" src="" alt="Album Cover" />
+    </div>
+    <button id="repeatButton" onclick="toggleRepeat()">Repeat: Off</button>
 </div>
 <script src="main.js"></script>
 </body>
