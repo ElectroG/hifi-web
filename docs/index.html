@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>HiFi Web Interface</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <h1>HiFi Web Interface</h1>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search for songs, artists, or albums...">
+        <button onclick="searchSong()">Search</button>
+    </div>
+    <div id="results" class="track-list"></div>
+    <audio id="audioPlayer" controls class="hidden"></audio>
+</div>
+<script src="main.js"></script>
+</body>
+</html>
