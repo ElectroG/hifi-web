@@ -1,8 +1,11 @@
-// public/main.js
-async function searchSong() {
-    const searchInput = document.getElementById('searchInput');
-    const query = searchInput.value.trim();
+// Store element references to avoid repeated queries
+const searchInput = document.getElementById('searchInput');
+const resultsDiv = document.getElementById('results');
+const audioPlayer = document.getElementById('audioPlayer');
+const repeatButton = document.getElementById('repeatButton');
 
+async function searchSong() {
+    const query = searchInput.value.trim();
     if (!query) {
         alert('Please enter a search term');
         return;
@@ -24,9 +27,7 @@ async function searchSong() {
     }
 }
 
-// public/main.js (update displayResults)
 function displayResults(tracks) {
-    const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = '';
 
     tracks.forEach(track => {
@@ -34,7 +35,7 @@ function displayResults(tracks) {
         const trackElement = document.createElement('div');
         trackElement.className = 'track-item';
         trackElement.innerHTML = `
-            <div class="cover-placeholder"></div>
+            <div class="cover-placeholder">Loading...</div>
             <div class="track-info">
                 <div class="track-title">${track.title}</div>
                 <div class="track-artist">${artistName}</div>
@@ -43,7 +44,6 @@ function displayResults(tracks) {
         trackElement.addEventListener('click', () => playTrack(track.id));
         resultsDiv.appendChild(trackElement);
 
-        // Load cover art
         loadCoverArt(track.id, trackElement.querySelector('.cover-placeholder'));
     });
 }
@@ -59,42 +59,21 @@ async function loadCoverArt(trackId, container) {
             img.src = data.coverUrl;
             img.alt = 'Album cover';
             container.replaceWith(img);
+        } else {
+            container.textContent = 'No Cover';
         }
     } catch (error) {
         console.error('Error loading cover art:', error);
+        container.textContent = 'Error Loading Cover';
     }
 }
 
-async function playTrack(trackId) {
-    try {
-        const response = await fetch(`/api/track?trackId=${trackId}`);
-        const trackData = await response.json();
-
-        if (!trackData.OriginalTrackUrl) {
-            throw new Error('No track URL found');
-        }
-
-        const audioPlayer = document.getElementById('audioPlayer');
-        audioPlayer.classList.remove('hidden');
-        audioPlayer.src = trackData.OriginalTrackUrl;
-        audioPlayer.play();
-    } catch (error) {
-        console.error('Playback failed:', error);
-        showMessage('Oh shit an error. Try again.');
-    }
-}
-
-// State variable for repeat mode
 let isRepeatOn = false;
-
-// Function to toggle repeat mode
 function toggleRepeat() {
     isRepeatOn = !isRepeatOn;
-    const repeatButton = document.getElementById('repeatButton');
     repeatButton.textContent = `Repeat: ${isRepeatOn ? 'On' : 'Off'}`;
 }
 
-// Update playTrack function
 async function playTrack(trackId) {
     try {
         const response = await fetch(`/api/track?trackId=${trackId}`);
@@ -104,12 +83,10 @@ async function playTrack(trackId) {
             throw new Error('No track URL found');
         }
 
-        const audioPlayer = document.getElementById('audioPlayer');
         audioPlayer.classList.remove('hidden');
         audioPlayer.src = trackData.OriginalTrackUrl;
         audioPlayer.play();
 
-        // Event listener for track end
         audioPlayer.onended = () => {
             if (isRepeatOn) {
                 audioPlayer.currentTime = 0;
@@ -122,15 +99,19 @@ async function playTrack(trackId) {
     }
 }
 
-
 function showMessage(message) {
-    const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = `<div class="track-item">${message}</div>`;
 }
 
 // Trigger search on Enter key press
-document.getElementById('searchInput').addEventListener('keypress', (e) => {
+searchInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         searchSong();
     }
+});
+
+fetch('/_vercel/insights/event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'page_view' }),
 });
