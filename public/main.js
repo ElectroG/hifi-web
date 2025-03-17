@@ -80,7 +80,7 @@ async function playTrack(trackId) {
         audioPlayer.play();
     } catch (error) {
         console.error('Playback failed:', error);
-        showMessage('Error playing track');
+        showMessage('Oh shit an error. Try again.');
     }
 }
 
