@@ -3,6 +3,16 @@ const searchInput = document.getElementById('searchInput');
 const resultsDiv = document.getElementById('results');
 const audioPlayer = document.getElementById('audioPlayer');
 const repeatButton = document.getElementById('repeatButton');
+// Cache the loader element
+const loader = document.getElementById('loader');
+
+function showLoader() {
+    loader.classList.remove('hidden');
+}
+
+function hideLoader() {
+    loader.classList.add('hidden');
+}
 
 async function searchSong() {
     const query = searchInput.value.trim();
@@ -10,6 +20,13 @@ async function searchSong() {
         alert('Please enter a search term');
         return;
     }
+
+    // Fade out previous results
+    resultsDiv.style.opacity = 0;
+    await new Promise(resolve => setTimeout(resolve, 500));
+    resultsDiv.innerHTML = '';
+
+    showLoader();
 
     try {
         const response = await fetch(`/api/search?query=${encodeURIComponent(query)}`);
@@ -24,6 +41,10 @@ async function searchSong() {
     } catch (error) {
         console.error('Search failed:', error);
         showMessage('Error searching for tracks');
+    } finally {
+        hideLoader(); // Hide loader after search completes
+        // Fade in new results
+        resultsDiv.style.opacity = 1;
     }
 }
 
@@ -75,6 +96,8 @@ function toggleRepeat() {
 }
 
 async function playTrack(trackId) {
+    showLoader();
+
     try {
         const response = await fetch(`/api/track?trackId=${trackId}`);
         const trackData = await response.json();
@@ -96,6 +119,8 @@ async function playTrack(trackId) {
     } catch (error) {
         console.error('Playback failed:', error);
         showMessage('Error playing track');
+    } finally {
+        hideLoader(); // Hide loader when track fetch is complete
     }
 }
 

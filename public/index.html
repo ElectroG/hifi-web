@@ -18,6 +18,8 @@
     <div class="search-container">
         <input type="text" id="searchInput" placeholder="Search for songs, artists, or albums...">
         <button onclick="searchSong()">Search</button>
+        <!-- Loader element inside the search container -->
+        <div id="loader" class="loader hidden"></div>
     </div>
     <div id="results" class="track-list"></div>
     <audio id="audioPlayer" controls class="hidden"></audio>
