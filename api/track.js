@@ -21,11 +21,15 @@ module.exports = async (req, res) => {
 
     try {
         for (const quality of qualityPriorities) {
+        let retries = 5;
+        let delay = 1000;
+
+        while (retries > 0) {
             try {
                 const apiUrl = `https://tidal.401658.xyz/track/?id=${encodeURIComponent(trackId)}&quality=${quality}`;
                 const response = await fetch(apiUrl);
 
-                if (!response.ok) continue; // Skip to next quality if HTTP error
+                if (!response.ok) throw new Error('HTTP error');
 
                 const trackData = await response.json();
                 const originalUrl = trackData.find(item => item.OriginalTrackUrl)?.OriginalTrackUrl;
@@ -33,11 +37,21 @@ module.exports = async (req, res) => {
                 if (originalUrl) {
                     return res.json({ OriginalTrackUrl: originalUrl });
                 }
+
+                break; // Exit retry loop if successful
             } catch (innerError) {
-                // Log and continue to next quality if any error occurs
-                console.error(`Error trying ${quality} quality:`, innerError);
+                retries--;
+                if (retries === 0) {
+                    console.error(`Error trying ${quality} quality:`, innerError);
+                    break;
+                }
+
+                console.error(`Retrying ${quality} quality... (${retries} attempts left)`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2;
             }
         }
+    }
 
         // If no qualities worked
         return res.status(404).json({ error: 'Track not found in any quality' });
