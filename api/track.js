@@ -6,7 +6,6 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Missing trackId parameter' });
     }
 
-    // Define quality priorities (in order of preference)
     const qualityPriorities = [
         'LOSSLESS',
         'HI_RES_LOSSLESS',
@@ -15,46 +14,38 @@ module.exports = async (req, res) => {
         'LOW'
     ];
 
-    // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', 'application/json');
 
     try {
         for (const quality of qualityPriorities) {
-        let retries = 5;
-        let delay = 1000;
+            const servers = [
+                'https://tidal.401658.xyz',
+                'https://hifi-04ed2aaea09a.herokuapp.com'
+            ];
 
-        while (retries > 0) {
-            try {
-                const apiUrl = `https://tidal.401658.xyz/track/?id=${encodeURIComponent(trackId)}&quality=${quality}`;
-                const response = await fetch(apiUrl);
+            for (const server of servers) {
+                try {
+                    const apiUrl = `${server}/track/?id=${encodeURIComponent(trackId)}&quality=${quality}`;
+                    const response = await fetch(apiUrl);
 
-                if (!response.ok) throw new Error('HTTP error');
+                    if (!response.ok) continue;
 
-                const trackData = await response.json();
-                const originalUrl = trackData.find(item => item.OriginalTrackUrl)?.OriginalTrackUrl;
+                    const trackData = await response.json();
+                    const originalUrl = trackData.find(item => item.OriginalTrackUrl)?.OriginalTrackUrl;
 
-                if (originalUrl) {
-                    return res.json({ OriginalTrackUrl: originalUrl });
+                    if (originalUrl) {
+                        return res.json({
+                            OriginalTrackUrl: originalUrl,
+                            quality: quality // Add quality to response
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Error with ${server} (${quality}):`, error.message);
                 }
-
-                break; // Exit retry loop if successful
-            } catch (innerError) {
-                retries--;
-                if (retries === 0) {
-                    console.error(`Error trying ${quality} quality:`, innerError);
-                    break;
-                }
-
-                console.error(`Retrying ${quality} quality... (${retries} attempts left)`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                delay *= 2;
             }
         }
-    }
-
-        // If no qualities worked
-        return res.status(404).json({ error: 'Track not found in any quality' });
+        return res.status(404).json({ error: 'Track not found in any quality or server' });
     } catch (outerError) {
         console.error("Unexpected error:", outerError);
         return res.status(500).json({ error: 'Internal server error' });

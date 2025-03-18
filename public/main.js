@@ -97,51 +97,47 @@ function toggleRepeat() {
 
 async function playTrack(trackId) {
     showLoader();
-    let retries = 5;
-    let delay = 1000; // Initial delay in milliseconds
+    try {
+        const response = await fetch(`/api/track?trackId=${trackId}`);
+        const trackData = await response.json();
 
-    while (retries > 0) {
-        try {
-            const response = await fetch(`/api/track?trackId=${trackId}`);
-            const trackData = await response.json();
-
-            if (!trackData.OriginalTrackUrl) {
-                throw new Error('No track URL found');
-            }
-
-            audioPlayer.classList.remove('hidden');
-            audioPlayer.src = trackData.OriginalTrackUrl;
-            audioPlayer.play();
-
-            audioPlayer.onended = () => {
-                if (isRepeatOn) {
-                    audioPlayer.currentTime = 0;
-                    audioPlayer.play();
-                }
-            };
-
-            // If successful, break out of the retry loop
-            break;
-        } catch (error) {
-            retries--;
-            if (retries === 0) {
-                console.error('Playback failed after retries:', error);
-                showMessage('Error playing track. Please try again later.');
-                break;
-            }
-
-            console.error(`Playback failed. Retrying... (${retries} attempts left)`);
-            showMessage("I'm working on it...");
-
-            // Wait for the delay before retrying
-            await new Promise(resolve => setTimeout(resolve, delay));
-
-            // Increase the delay for the next retry (exponential backoff)
-            delay *= 2;
+        if (!trackData.OriginalTrackUrl) {
+            throw new Error('No track URL found');
         }
-    }
 
-    hideLoader(); // Hide loader when track fetch is complete
+        audioPlayer.classList.remove('hidden');
+        audioPlayer.src = trackData.OriginalTrackUrl;
+        audioPlayer.play();
+
+        // Update quality display
+        updateQualityDisplay(trackData.quality);
+
+        audioPlayer.onended = () => {
+            if (isRepeatOn) {
+                audioPlayer.currentTime = 0;
+                audioPlayer.play();
+            }
+        };
+
+    } catch (error) {
+        console.error('Playback failed:', error);
+        showMessage('Error playing track. Please try again later.');
+    } finally {
+        hideLoader();
+    }
+}
+
+// New quality display function
+function updateQualityDisplay(quality) {
+    let qualityDisplay = document.getElementById('qualityDisplay');
+    if (!qualityDisplay) {
+        qualityDisplay = document.createElement('div');
+        qualityDisplay.id = 'qualityDisplay';
+        qualityDisplay.className = 'quality-display';
+        const playerContainer = document.querySelector('.player-container') || document.body;
+        playerContainer.appendChild(qualityDisplay);
+    }
+    qualityDisplay.textContent = `Quality: ${quality}`;
 }
 
 function showMessage(message) {

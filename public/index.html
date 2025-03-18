@@ -10,7 +10,6 @@
         }
     </style>
     <script defer src="/_vercel/insights/script.js"></script>
-
 </head>
 <body>
 <div class="container">
@@ -22,7 +21,12 @@
         <div id="loader" class="loader hidden"></div>
     </div>
     <div id="results" class="track-list"></div>
-    <audio id="audioPlayer" controls class="hidden"></audio>
+
+    <!-- Player Container with Audio Element -->
+    <div class="player-container">
+        <audio id="audioPlayer" class="hidden" controls></audio>
+    </div>
+
     <div id="coverContainer" class="cover-container hidden">
         <img id="coverImage" src="" alt="Album Cover" />
     </div>
