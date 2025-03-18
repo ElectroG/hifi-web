@@ -182,3 +182,14 @@ button:hover {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Utility class to hide elements */
+.hidden {
+    display: none;
+}
+
+/* Add fade transition to the results container */
+#results {
+    transition: opacity 0.5s ease;
+    opacity: 1;
+}
